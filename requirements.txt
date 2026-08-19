@@ -1,0 +1,10 @@
+pandas>=2.2,<3
+numpy>=2.0,<3
+geopandas>=1.0,<2
+shapely>=2.0,<3
+pyogrio>=0.10,<1
+plotly>=6.0,<7
+dash[compress]>=3.3,<5
+orjson>=3.10,<4
+requests>=2.31,<3
+pytest>=8,<10

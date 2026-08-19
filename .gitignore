@@ -1,0 +1,11 @@
+*.zip
+*.csv
+*.json
+*.pkl
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.geojson
+.venv/
