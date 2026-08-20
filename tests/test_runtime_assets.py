@@ -68,3 +68,33 @@ def test_precompute_change_formulas(tmp_path, monkeypatch):
     assert row["Share2016"] == 10.0
     assert row["Share2021"] == 12.5
     assert row["ShareChangePP"] == 2.5
+
+
+def test_safe_union_boundary_repairs_invalid_polygon():
+    from shapely.geometry import Polygon
+
+    # Self-intersecting bow-tie polygon plus a valid neighbour.
+    invalid = Polygon([(0, 0), (2, 2), (0, 2), (2, 0), (0, 0)])
+    valid = box(2, 0, 3, 1)
+    boundary = ra._safe_union_boundary([invalid, valid])
+    assert not boundary.is_empty
+    assert boundary.is_valid
+
+
+def test_crosswalk_overlay_retry_handles_invalid_inputs():
+    from shapely.geometry import Polygon
+
+    a = gpd.GeoDataFrame(
+        {"RegionID2016": ["1001"]},
+        geometry=[Polygon([(0, 0), (2, 2), (0, 2), (2, 0), (0, 0)])],
+        crs="EPSG:6933",
+    )
+    b = gpd.GeoDataFrame(
+        {"RegionID2021": ["1001"]},
+        geometry=[box(0, 0, 2, 2)],
+        crs="EPSG:6933",
+    )
+    # The helper must either succeed directly or repair-and-retry; callers should
+    # never receive the TopologyException that used to terminate preprocessing.
+    out = ra._overlay_with_topology_retry(a, b, province_code="10")
+    assert not out.empty

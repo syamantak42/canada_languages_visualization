@@ -18,6 +18,17 @@ Percent = 100 × single-response mother-tongue count / total mother-tongue popul
 
 For a language group, counts of its detailed language leaves are summed before the percentage is calculated.
 
+### Urban-region insets
+
+The same figure automatically adds magnified Census Division views for the three major urban regions where province-scale maps otherwise compress the detail:
+
+- **Ontario:** Toronto / Greater Toronto Area;
+- **Quebec:** Montréal and surrounding suburbs;
+- **British Columbia:** Vancouver and adjacent urbanized area;
+- **Canada:** all three insets are shown together.
+
+The insets are not new aggregations. They reuse the exact same Census Division values, boundaries, colours, tooltips, and normalization as the parent map. They are placed in reserved space inside the Plotly figure so they do not cover the main choropleth content. Insets are applied consistently to prevalence, ranked-language, and 2016→2021 change maps.
+
 ### 2. Ranked languages
 
 Displays the 1st, 2nd, 3rd, ... most common detailed mother tongue or language group in every Census Division. The map uses one categorical `go.Choroplethmap` trace, even when many categories are present.
@@ -74,15 +85,9 @@ Direct Census-Division CSV download used by the script:
 https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=004
 ```
 
-### 2016 Census Profile Web Data Service
+### 2016 Census Profile Web Data Service (DGUIDs derived locally from the official boundary file)
 
-The 2016 Profile WDS returns all Profile characteristics for a requested DGUID. The downloader first obtains the official list of Census Divisions and then downloads **topic 10 = Language** for each CD.
-
-Geography service:
-
-```text
-https://www12.statcan.gc.ca/rest/census-recensement/CR2016Geo.json?lang=E&geos=CD&cpt=00
-```
+The 2016 Profile WDS returns all Profile characteristics for a requested DGUID. The downloader derives the Census Division DGUIDs directly from the already-downloaded official 2016 Census Division boundary file, avoiding a fragile dependency on the archived geography-list web service, and then downloads **topic 10 = Language** for each CD.
 
 Language Profile service:
 
@@ -189,7 +194,7 @@ This step:
 - creates the 2016→2021 spatial crosswalk;
 - precomputes both change metrics.
 
-Analytical crosswalk geometry is **not simplified**. Geometry simplification applies only to browser-rendering GeoJSON.
+Browser-rendering GeoJSON is simplified aggressively for display. The 2016→2021 analytical crosswalk uses a much lighter **250 m topology-preserving simplification** before the expensive polygon overlay, followed by geometry repair and precision-grid retry logic for difficult coastal polygons.
 
 ### 4. Verify everything required by the app exists
 
@@ -284,7 +289,7 @@ python scripts/prepare_app_assets.py --change-only
 pytest -q
 ```
 
-The tests cover hierarchy extraction, 2016→2021 label harmonization, ranking, spatial allocation, change calculations, MapLibre prevalence/rank/change figures, horizontal colorbars, URL-backed GeoJSON, and generic viewport fitting.
+The tests cover hierarchy extraction, 2016→2021 label harmonization, ranking, spatial allocation, change calculations, MapLibre prevalence/rank/change figures, Toronto/Montréal/Vancouver inset placement, non-overlap of inset and main-map domains, horizontal colorbars, URL-backed GeoJSON, topology repair, and generic viewport fitting.
 
 ## Important interpretation notes
 
